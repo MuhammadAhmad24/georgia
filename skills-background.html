@@ -311,11 +311,6 @@
             opacity: 0.8;
         }
 
-        .gallery .gallery-item:nth-child(16),
-        .gallery .gallery-item:nth-child(17) {
-            grid-column: span 6;
-        }
-
         @media (max-width: 1100px) {
             .page {
                 padding-inline: 30px;
@@ -440,12 +435,7 @@
 
             .page {
                 padding-bottom: 40px;
-            }
-
-            .gallery .gallery-item:nth-child(16),
-            .gallery .gallery-item:nth-child(17) {
-                grid-column: span 12;
-            }
+            }   
         }
     </style>
 </head>
@@ -552,100 +542,100 @@
 
         const ASSET_ROOT = './assets/images/Final_page/';
 
-        async function findExistingAsset(base, exts) {
-            for (const ext of exts) {
-                const path = `${ASSET_ROOT}${base}${ext}`;
-                try {
-                    const res = await fetch(path, { method: 'HEAD' });
-                    if (res.ok) return path;
-                } catch (e) { }
-            }
-            return null;
-        }
 
-        async function hydrateMedia() {
-            const images = document.querySelectorAll('img[data-base]');
-            const videos = document.querySelectorAll('video[data-base]');
-
-            for (const img of images) {
-                const base = img.dataset.base;
-                const src = await findExistingAsset(base, ['.jpg', '.jpeg', '.png', '.webp', '.JPG', '.JPEG', '.PNG', '.WEBP']);
-                if (src) {
-                    img.src = src;
-                } else {
-                    img.closest('.gallery-item, .project-hero')?.setAttribute('style', 'display:none;');
-                }
-            }
-
-            for (const video of videos) {
-                const base = video.dataset.base;
-                const src = await findExistingAsset(base, ['.mov', '.mp4', '.MOV', '.MP4']);
-                if (src) {
-                    video.src = src;
-                } else {
-                    video.closest('.gallery-item, .project-hero')?.setAttribute('style', 'display:none;');
-                }
-            }
-        }
-
-        hydrateMedia();
+        /* =========================
+           MEDIA LIST WITH EXTENSIONS
+        ========================= */
 
         const ALL_MEDIA = [
-            "IMG_0414", "IMG_0418", "IMG_0419", "IMG_8121",
-            "image00024", "IMG_6003", "IMG_8272",
-            "Pro-Capture_One_3280", "IMG_9553",
+            { name: "IMG_0414", ext: ".JPG" },
+            { name: "IMG_0418", ext: ".JPG" },
+            { name: "IMG_0419", ext: ".JPG" },
+            { name: "IMG_8121", ext: ".jpg" },
+            { name: "image00024", ext: ".JPEG" },
+            { name: "IMG_6003", ext: ".jpg" },
+            { name: "IMG_8272", ext: ".JPG" },
+            { name: "Pro-Capture_One_3280", ext: ".jpg" },
+            { name: "IMG_9553", ext: ".JPG" },
 
-            // NEW ADDITIONS 👇
-            "IMG_0735", "IMG_1726", "IMG_8753", "IMG_9550_2",
-            "dryface", "ECG00257", "IMG_0001", "IMG_0006",
-            "IMG_4090", "IMG_4960", "IMG_3374",
-            "img1", "img2"
+            { name: "IMG_0735", ext: ".jpg" },
+            { name: "IMG_8753", ext: ".jpg" },
+            { name: "IMG_9550_2", ext: ".JPG" },
+            { name: "ECG00257", ext: ".jpg" },
+            { name: "IMG_0001", ext: ".JPG" },
+            { name: "IMG_0006", ext: ".JPG" },
+            { name: "IMG_4090", ext: ".JPG" },
+            { name: "img1", ext: ".jpg" },
+            { name: "img2", ext: ".jpg" }
         ];
-
+        
         const ALL_VIDEOS = [
-            "intro", "test_shot_4", "video1"
+            { name: "intro", ext: ".MOV" },
+            { name: "test_shot_4", ext: ".MOV" },
+            { name: "video1", ext: ".mp4" },
+            { name: "IMG_1726", ext: ".mov" },
+            { name: "dryface", ext: ".mp4" },
+            { name: "IMG_3374", ext: ".mp4" },
+            { name: "IMG_4960", ext: ".mp4" }
         ];
 
-        async function buildGallery() {
+
+        /* =========================
+           HERO VIDEO LOAD
+        ========================= */
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const heroVideo = document.querySelector(".project-hero video");
+            if (heroVideo) {
+                const video = ALL_VIDEOS.find(v => v.name === "video1");
+                if (video) {
+                    heroVideo.src = `${ASSET_ROOT}${video.name}${video.ext}`;
+                }
+            }
+        });
+
+
+        /* =========================
+           BUILD GALLERY
+        ========================= */
+
+        function buildGallery() {
             const gallery = document.getElementById("dynamicGallery");
 
-            for (const base of ALL_MEDIA) {
-                const src = await findExistingAsset(base, ['.jpg', '.png', '.jpeg', '.webp', '.JPG']);
+            /* Images */
+            ALL_MEDIA.forEach(item => {
+                const figure = document.createElement("figure");
+                figure.className = "gallery-item span-4";
 
-                if (src) {
-                    const figure = document.createElement("figure");
-                    figure.className = "gallery-item span-4";
+                const img = document.createElement("img");
+                img.src = `${ASSET_ROOT}${item.name}${item.ext}`;
+                img.loading = "lazy";
 
-                    const img = document.createElement("img");
-                    img.src = src;
+                figure.appendChild(img);
+                gallery.appendChild(figure);
+            });
 
-                    figure.appendChild(img);
-                    gallery.appendChild(figure);
-                }
-            }
+            /* Videos */
+            ALL_VIDEOS.forEach(item => {
+                if (item.name === "video1") return; // skip hero duplicate
 
-            for (const base of ALL_VIDEOS) {
-                const src = await findExistingAsset(base, ['.mp4', '.mov', '.MP4', '.MOV']);
+                const figure = document.createElement("figure");
+                figure.className = "gallery-item span-6";
 
-                if (src) {
-                    const figure = document.createElement("figure");
-                    figure.className = "gallery-item span-6";
+                const video = document.createElement("video");
+                video.src = `${ASSET_ROOT}${item.name}${item.ext}`;
+                video.autoplay = true;
+                video.loop = true;
+                video.muted = true;
+                video.controls = true;
+                video.playsInline = true;
 
-                    const video = document.createElement("video");
-                    video.src = src;
-                    video.autoplay = true;
-                    video.loop = true;
-                    video.muted = true;
-                    video.controls = true;
-
-                    figure.appendChild(video);
-                    gallery.appendChild(figure);
-                }
-            }
+                figure.appendChild(video);
+                gallery.appendChild(figure);
+            });
         }
 
         buildGallery();
-
     </script>
 </body>
 
